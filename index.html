@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Hybrid">
+<title>Hybrid DUP — 8 Week Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+<body style="margin:0;padding:0;background:#0a0a0f;">
+<div id="root"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:'Bricolage Grotesque',system-ui,sans-serif;color:#ff3b5c;font-size:16px;font-weight:700;">Loading…</div></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone@7.24.0/babel.min.js"></script>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+const window_storage = {
+  get: async (k) => { const v = localStorage.getItem(k); return v ? { value: v } : null; },
+  set: async (k, v) => { localStorage.setItem(k, v); return true; }
+};
+
+const PROGRAM = JSON.parse(`{"weeks":{"1":{"week":1,"title":"Intro","days":{"1":{"name":"PUSH \\u2014 Heavy Bench","exercises":[{"name":"Bench Press","type":"main","sets":4,"reps":"3-5 (last: AMRAP)","rpe":"2-3 RIR","rest":180,"target_reps":6,"note":"The strength lift. Tight upper back, feet planted, drive.","muscles":["chest","triceps"],"weight_kg":70.0},{"name":"Incline DB Press","type":"main","sets":3,"reps":"8-10","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"30-45\\u00b0 bench. Bar path tracks upper chest.","muscles":["chest","triceps"],"weight_kg":22.5},{"name":"Cable Lateral Raise","type":"accessory","sets":4,"reps":"12-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"1 arm at a time, lean away from stack. Pinky up at top.","muscles":["side delts"],"weight_kg":7.5},{"name":"Cable Chest Fly","type":"accessory","sets":3,"reps":"12-15","rpe":"1 RIR","rest":75,"target_reps":null,"note":"High-to-low pulleys. Squeeze inner chest at midline.","muscles":["chest"],"weight_kg":12.5},{"name":"Tricep Rope Pushdown","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Spread the rope at lockout. Elbows pinned to sides.","muscles":["triceps"],"weight_kg":25.0},{"name":"Cable Rear Delt Fly","type":"accessory","sets":4,"reps":"15-20","rpe":"1 RIR","rest":45,"target_reps":null,"note":"Cross-body. Lead with elbows, not wrists.","muscles":["rear delts"],"weight_kg":7.5}]},"2":{"name":"PULL \\u2014 Heavy Row","exercises":[{"name":"Pull-up","type":"main","sets":4,"reps":"6-10 (last: AMRAP)","rpe":"2-3 RIR","rest":150,"target_reps":10,"note":"Add weight via belt when 10 reps clean. BW or assisted otherwise.","muscles":["lats","biceps"],"weight_kg":"bw"},{"name":"Barbell Row","type":"main","sets":4,"reps":"6-8 (last: AMRAP)","rpe":"2-3 RIR","rest":150,"target_reps":10,"note":"Pendlay or bent. Bar to lower chest. No lazy reps.","muscles":["upper back","lats","biceps"],"weight_kg":60.0},{"name":"Lat Pulldown (close neutral)","type":"main","sets":3,"reps":"10-12","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"Different angle from pull-ups. Drive elbows to ribs.","muscles":["lats","biceps"],"weight_kg":50.0},{"name":"Face Pull","type":"accessory","sets":4,"reps":"15-20","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Rope to forehead. External rotate at end. Rear delt + healthy shoulders.","muscles":["rear delts"],"weight_kg":25.0},{"name":"Incline DB Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Bench at 45\\u00b0. Long head stretch. Slow eccentric, 3-second negative.","muscles":["biceps"],"weight_kg":12.5},{"name":"Hammer Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Neutral grip. Brachialis + forearm thickness.","muscles":["biceps"],"weight_kg":12.5}]},"3":{"name":"LEGS","exercises":[{"name":"Squat","type":"main","sets":3,"reps":"6-8 (last: AMRAP)","rpe":"2-3 RIR","rest":180,"target_reps":10,"note":"Brace. Full depth. Drive through midfoot.","muscles":["quads","glutes"],"weight_kg":90.0},{"name":"Romanian Deadlift","type":"main","sets":3,"reps":"8-10","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"Hinge, neutral spine. Stretch hams. Don't squat the lift.","muscles":["hamstrings","glutes"],"weight_kg":100.0},{"name":"Leg Press","type":"main","sets":3,"reps":"10-12","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"Feet shoulder-width, mid-platform. Quad emphasis.","muscles":["quads","glutes"],"weight_kg":140.0},{"name":"Seated Leg Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":75,"target_reps":null,"note":"Hams in shortened position. Squeeze 1 sec at peak.","muscles":["hamstrings"],"weight_kg":35.0},{"name":"Standing Calf Raise","type":"accessory","sets":4,"reps":"10-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Full ROM, deep stretch at bottom. Slow eccentric.","muscles":["calves"],"weight_kg":60.0},{"name":"Hanging Leg Raise","type":"accessory","sets":3,"reps":"10-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Slow, controlled. No swinging. Add ankle weights when 15 is easy.","muscles":["abs"],"weight_kg":"bw"}]},"4":{"name":"UPPER \\u2014 Volume Bench","exercises":[{"name":"Bench Press (volume)","type":"main","sets":4,"reps":"8-10","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"Same lift as Push Day, lighter weight, more reps. RPE 8.","muscles":["chest","triceps"],"weight_kg":60.0},{"name":"Chest-Supported DB Row","type":"main","sets":3,"reps":"10-12","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"Squeeze shoulder blades. No body english.","muscles":["upper back","lats"],"weight_kg":22.5},{"name":"Seated DB Shoulder Press","type":"main","sets":3,"reps":"8-10","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"Vertical bench. Stop just before lockout to keep tension.","muscles":["front delts","side delts","triceps"],"weight_kg":17.5},{"name":"DB Lateral Raise","type":"accessory","sets":4,"reps":"10-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Slight forward lean. Lead with elbow. Don't shrug.","muscles":["side delts"],"weight_kg":7.5},{"name":"EZ Bar Curl","type":"accessory","sets":3,"reps":"8-10","rpe":"1 RIR","rest":75,"target_reps":null,"note":"Wide grip = inner head bias. Strict form, no hip thrust.","muscles":["biceps"],"weight_kg":25.0},{"name":"Overhead Tricep Cable Ext","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Rope, kneeling or seated. Long head stretch under load.","muscles":["triceps"],"weight_kg":22.5}]},"5":{"name":"LOWER + Arm/Delt Finish","exercises":[{"name":"Hip Thrust","type":"main","sets":3,"reps":"8-12 (last: AMRAP)","rpe":"2-3 RIR","rest":120,"target_reps":13,"note":"Bar over hips, padding. Squeeze glutes hard at top, 1-sec hold.","muscles":["glutes","hamstrings"],"weight_kg":80.0},{"name":"Bulgarian Split Squat","type":"main","sets":3,"reps":"10-12/leg","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"DBs at sides. Front foot far enough for vertical shin.","muscles":["quads","glutes"],"weight_kg":12.5},{"name":"Seated Calf Raise","type":"accessory","sets":4,"reps":"12-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Soleus emphasis. Pause 1 sec at top.","muscles":["calves"],"weight_kg":25.0},{"name":"Cable Lateral Raise","type":"accessory","sets":4,"reps":"12-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"4th lateral session of the week. Width is built on frequency.","muscles":["side delts"],"weight_kg":7.5},{"name":"Preacher Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Short head bias. No bouncing at bottom \\u2014 pause and reverse.","muscles":["biceps"],"weight_kg":22.5},{"name":"Cable Crunch","type":"accessory","sets":3,"reps":"12-15","rpe":"1 RIR","rest":45,"target_reps":null,"note":"Kneel, rope at base of skull. Crunch by flexing spine, not hip.","muscles":["abs"],"weight_kg":"MAX"}]}}},"2":{"week":2,"title":"Settle","days":{"1":{"name":"PUSH \\u2014 Heavy Bench","exercises":[{"name":"Bench Press","type":"main","sets":4,"reps":"3-5 (last: AMRAP)","rpe":"2-3 RIR","rest":180,"target_reps":6,"note":"The strength lift. Tight upper back, feet planted, drive.","muscles":["chest","triceps"],"weight_kg":70.0},{"name":"Incline DB Press","type":"main","sets":3,"reps":"8-10","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"30-45\\u00b0 bench. Bar path tracks upper chest.","muscles":["chest","triceps"],"weight_kg":22.5},{"name":"Cable Lateral Raise","type":"accessory","sets":4,"reps":"12-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"1 arm at a time, lean away from stack. Pinky up at top.","muscles":["side delts"],"weight_kg":7.5},{"name":"Cable Chest Fly","type":"accessory","sets":3,"reps":"12-15","rpe":"1 RIR","rest":75,"target_reps":null,"note":"High-to-low pulleys. Squeeze inner chest at midline.","muscles":["chest"],"weight_kg":12.5},{"name":"Tricep Rope Pushdown","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Spread the rope at lockout. Elbows pinned to sides.","muscles":["triceps"],"weight_kg":25.0},{"name":"Cable Rear Delt Fly","type":"accessory","sets":4,"reps":"15-20","rpe":"1 RIR","rest":45,"target_reps":null,"note":"Cross-body. Lead with elbows, not wrists.","muscles":["rear delts"],"weight_kg":7.5}]},"2":{"name":"PULL \\u2014 Heavy Row","exercises":[{"name":"Pull-up","type":"main","sets":4,"reps":"6-10 (last: AMRAP)","rpe":"2-3 RIR","rest":150,"target_reps":10,"note":"Add weight via belt when 10 reps clean. BW or assisted otherwise.","muscles":["lats","biceps"],"weight_kg":"bw"},{"name":"Barbell Row","type":"main","sets":4,"reps":"6-8 (last: AMRAP)","rpe":"2-3 RIR","rest":150,"target_reps":10,"note":"Pendlay or bent. Bar to lower chest. No lazy reps.","muscles":["upper back","lats","biceps"],"weight_kg":60.0},{"name":"Lat Pulldown (close neutral)","type":"main","sets":3,"reps":"10-12","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"Different angle from pull-ups. Drive elbows to ribs.","muscles":["lats","biceps"],"weight_kg":50.0},{"name":"Face Pull","type":"accessory","sets":4,"reps":"15-20","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Rope to forehead. External rotate at end. Rear delt + healthy shoulders.","muscles":["rear delts"],"weight_kg":25.0},{"name":"Incline DB Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Bench at 45\\u00b0. Long head stretch. Slow eccentric, 3-second negative.","muscles":["biceps"],"weight_kg":12.5},{"name":"Hammer Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Neutral grip. Brachialis + forearm thickness.","muscles":["biceps"],"weight_kg":12.5}]},"3":{"name":"LEGS","exercises":[{"name":"Squat","type":"main","sets":3,"reps":"6-8 (last: AMRAP)","rpe":"2-3 RIR","rest":180,"target_reps":10,"note":"Brace. Full depth. Drive through midfoot.","muscles":["quads","glutes"],"weight_kg":90.0},{"name":"Romanian Deadlift","type":"main","sets":3,"reps":"8-10","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"Hinge, neutral spine. Stretch hams. Don't squat the lift.","muscles":["hamstrings","glutes"],"weight_kg":100.0},{"name":"Leg Press","type":"main","sets":3,"reps":"10-12","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"Feet shoulder-width, mid-platform. Quad emphasis.","muscles":["quads","glutes"],"weight_kg":140.0},{"name":"Seated Leg Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":75,"target_reps":null,"note":"Hams in shortened position. Squeeze 1 sec at peak.","muscles":["hamstrings"],"weight_kg":35.0},{"name":"Standing Calf Raise","type":"accessory","sets":4,"reps":"10-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Full ROM, deep stretch at bottom. Slow eccentric.","muscles":["calves"],"weight_kg":60.0},{"name":"Hanging Leg Raise","type":"accessory","sets":3,"reps":"10-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Slow, controlled. No swinging. Add ankle weights when 15 is easy.","muscles":["abs"],"weight_kg":"bw"}]},"4":{"name":"UPPER \\u2014 Volume Bench","exercises":[{"name":"Bench Press (volume)","type":"main","sets":4,"reps":"8-10","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"Same lift as Push Day, lighter weight, more reps. RPE 8.","muscles":["chest","triceps"],"weight_kg":60.0},{"name":"Chest-Supported DB Row","type":"main","sets":3,"reps":"10-12","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"Squeeze shoulder blades. No body english.","muscles":["upper back","lats"],"weight_kg":22.5},{"name":"Seated DB Shoulder Press","type":"main","sets":3,"reps":"8-10","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"Vertical bench. Stop just before lockout to keep tension.","muscles":["front delts","side delts","triceps"],"weight_kg":17.5},{"name":"DB Lateral Raise","type":"accessory","sets":4,"reps":"10-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Slight forward lean. Lead with elbow. Don't shrug.","muscles":["side delts"],"weight_kg":7.5},{"name":"EZ Bar Curl","type":"accessory","sets":3,"reps":"8-10","rpe":"1 RIR","rest":75,"target_reps":null,"note":"Wide grip = inner head bias. Strict form, no hip thrust.","muscles":["biceps"],"weight_kg":25.0},{"name":"Overhead Tricep Cable Ext","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Rope, kneeling or seated. Long head stretch under load.","muscles":["triceps"],"weight_kg":22.5}]},"5":{"name":"LOWER + Arm/Delt Finish","exercises":[{"name":"Hip Thrust","type":"main","sets":3,"reps":"8-12 (last: AMRAP)","rpe":"2-3 RIR","rest":120,"target_reps":13,"note":"Bar over hips, padding. Squeeze glutes hard at top, 1-sec hold.","muscles":["glutes","hamstrings"],"weight_kg":80.0},{"name":"Bulgarian Split Squat","type":"main","sets":3,"reps":"10-12/leg","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"DBs at sides. Front foot far enough for vertical shin.","muscles":["quads","glutes"],"weight_kg":12.5},{"name":"Seated Calf Raise","type":"accessory","sets":4,"reps":"12-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Soleus emphasis. Pause 1 sec at top.","muscles":["calves"],"weight_kg":25.0},{"name":"Cable Lateral Raise","type":"accessory","sets":4,"reps":"12-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"4th lateral session of the week. Width is built on frequency.","muscles":["side delts"],"weight_kg":7.5},{"name":"Preacher Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Short head bias. No bouncing at bottom \\u2014 pause and reverse.","muscles":["biceps"],"weight_kg":22.5},{"name":"Cable Crunch","type":"accessory","sets":3,"reps":"12-15","rpe":"1 RIR","rest":45,"target_reps":null,"note":"Kneel, rope at base of skull. Crunch by flexing spine, not hip.","muscles":["abs"],"weight_kg":"MAX"}]}}},"3":{"week":3,"title":"Build","days":{"1":{"name":"PUSH \\u2014 Heavy Bench","exercises":[{"name":"Bench Press","type":"main","sets":4,"reps":"3-5 (last: AMRAP)","rpe":"2-3 RIR","rest":180,"target_reps":6,"note":"The strength lift. Tight upper back, feet planted, drive.","muscles":["chest","triceps"],"weight_kg":72.5},{"name":"Incline DB Press","type":"main","sets":3,"reps":"8-10","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"30-45\\u00b0 bench. Bar path tracks upper chest.","muscles":["chest","triceps"],"weight_kg":22.5},{"name":"Cable Lateral Raise","type":"accessory","sets":4,"reps":"12-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"1 arm at a time, lean away from stack. Pinky up at top.","muscles":["side delts"],"weight_kg":7.5},{"name":"Cable Chest Fly","type":"accessory","sets":3,"reps":"12-15","rpe":"1 RIR","rest":75,"target_reps":null,"note":"High-to-low pulleys. Squeeze inner chest at midline.","muscles":["chest"],"weight_kg":12.5},{"name":"Tricep Rope Pushdown","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Spread the rope at lockout. Elbows pinned to sides.","muscles":["triceps"],"weight_kg":25.0},{"name":"Cable Rear Delt Fly","type":"accessory","sets":4,"reps":"15-20","rpe":"1 RIR","rest":45,"target_reps":null,"note":"Cross-body. Lead with elbows, not wrists.","muscles":["rear delts"],"weight_kg":7.5}]},"2":{"name":"PULL \\u2014 Heavy Row","exercises":[{"name":"Pull-up","type":"main","sets":4,"reps":"6-10 (last: AMRAP)","rpe":"2-3 RIR","rest":150,"target_reps":10,"note":"Add weight via belt when 10 reps clean. BW or assisted otherwise.","muscles":["lats","biceps"],"weight_kg":"bw"},{"name":"Barbell Row","type":"main","sets":4,"reps":"6-8 (last: AMRAP)","rpe":"2-3 RIR","rest":150,"target_reps":10,"note":"Pendlay or bent. Bar to lower chest. No lazy reps.","muscles":["upper back","lats","biceps"],"weight_kg":62.5},{"name":"Lat Pulldown (close neutral)","type":"main","sets":3,"reps":"10-12","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"Different angle from pull-ups. Drive elbows to ribs.","muscles":["lats","biceps"],"weight_kg":50.0},{"name":"Face Pull","type":"accessory","sets":4,"reps":"15-20","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Rope to forehead. External rotate at end. Rear delt + healthy shoulders.","muscles":["rear delts"],"weight_kg":25.0},{"name":"Incline DB Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Bench at 45\\u00b0. Long head stretch. Slow eccentric, 3-second negative.","muscles":["biceps"],"weight_kg":12.5},{"name":"Hammer Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Neutral grip. Brachialis + forearm thickness.","muscles":["biceps"],"weight_kg":12.5}]},"3":{"name":"LEGS","exercises":[{"name":"Squat","type":"main","sets":3,"reps":"6-8 (last: AMRAP)","rpe":"2-3 RIR","rest":180,"target_reps":10,"note":"Brace. Full depth. Drive through midfoot.","muscles":["quads","glutes"],"weight_kg":92.5},{"name":"Romanian Deadlift","type":"main","sets":3,"reps":"8-10","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"Hinge, neutral spine. Stretch hams. Don't squat the lift.","muscles":["hamstrings","glutes"],"weight_kg":100.0},{"name":"Leg Press","type":"main","sets":3,"reps":"10-12","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"Feet shoulder-width, mid-platform. Quad emphasis.","muscles":["quads","glutes"],"weight_kg":140.0},{"name":"Seated Leg Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":75,"target_reps":null,"note":"Hams in shortened position. Squeeze 1 sec at peak.","muscles":["hamstrings"],"weight_kg":35.0},{"name":"Standing Calf Raise","type":"accessory","sets":4,"reps":"10-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Full ROM, deep stretch at bottom. Slow eccentric.","muscles":["calves"],"weight_kg":60.0},{"name":"Hanging Leg Raise","type":"accessory","sets":3,"reps":"10-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Slow, controlled. No swinging. Add ankle weights when 15 is easy.","muscles":["abs"],"weight_kg":"bw"}]},"4":{"name":"UPPER \\u2014 Volume Bench","exercises":[{"name":"Bench Press (volume)","type":"main","sets":4,"reps":"8-10","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"Same lift as Push Day, lighter weight, more reps. RPE 8.","muscles":["chest","triceps"],"weight_kg":60.0},{"name":"Chest-Supported DB Row","type":"main","sets":3,"reps":"10-12","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"Squeeze shoulder blades. No body english.","muscles":["upper back","lats"],"weight_kg":22.5},{"name":"Seated DB Shoulder Press","type":"main","sets":3,"reps":"8-10","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"Vertical bench. Stop just before lockout to keep tension.","muscles":["front delts","side delts","triceps"],"weight_kg":17.5},{"name":"DB Lateral Raise","type":"accessory","sets":4,"reps":"10-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Slight forward lean. Lead with elbow. Don't shrug.","muscles":["side delts"],"weight_kg":7.5},{"name":"EZ Bar Curl","type":"accessory","sets":3,"reps":"8-10","rpe":"1 RIR","rest":75,"target_reps":null,"note":"Wide grip = inner head bias. Strict form, no hip thrust.","muscles":["biceps"],"weight_kg":25.0},{"name":"Overhead Tricep Cable Ext","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Rope, kneeling or seated. Long head stretch under load.","muscles":["triceps"],"weight_kg":22.5}]},"5":{"name":"LOWER + Arm/Delt Finish","exercises":[{"name":"Hip Thrust","type":"main","sets":3,"reps":"8-12 (last: AMRAP)","rpe":"2-3 RIR","rest":120,"target_reps":13,"note":"Bar over hips, padding. Squeeze glutes hard at top, 1-sec hold.","muscles":["glutes","hamstrings"],"weight_kg":82.5},{"name":"Bulgarian Split Squat","type":"main","sets":3,"reps":"10-12/leg","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"DBs at sides. Front foot far enough for vertical shin.","muscles":["quads","glutes"],"weight_kg":12.5},{"name":"Seated Calf Raise","type":"accessory","sets":4,"reps":"12-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Soleus emphasis. Pause 1 sec at top.","muscles":["calves"],"weight_kg":25.0},{"name":"Cable Lateral Raise","type":"accessory","sets":4,"reps":"12-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"4th lateral session of the week. Width is built on frequency.","muscles":["side delts"],"weight_kg":7.5},{"name":"Preacher Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Short head bias. No bouncing at bottom \\u2014 pause and reverse.","muscles":["biceps"],"weight_kg":22.5},{"name":"Cable Crunch","type":"accessory","sets":3,"reps":"12-15","rpe":"1 RIR","rest":45,"target_reps":null,"note":"Kneel, rope at base of skull. Crunch by flexing spine, not hip.","muscles":["abs"],"weight_kg":"MAX"}]}}},"4":{"week":4,"title":"Build+","days":{"1":{"name":"PUSH \\u2014 Heavy Bench","exercises":[{"name":"Bench Press","type":"main","sets":4,"reps":"3-5 (last: AMRAP)","rpe":"2-3 RIR","rest":180,"target_reps":6,"note":"The strength lift. Tight upper back, feet planted, drive.","muscles":["chest","triceps"],"weight_kg":72.5},{"name":"Incline DB Press","type":"main","sets":3,"reps":"8-10","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"30-45\\u00b0 bench. Bar path tracks upper chest.","muscles":["chest","triceps"],"weight_kg":25.0},{"name":"Cable Lateral Raise","type":"accessory","sets":4,"reps":"12-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"1 arm at a time, lean away from stack. Pinky up at top.","muscles":["side delts"],"weight_kg":8.75},{"name":"Cable Chest Fly","type":"accessory","sets":3,"reps":"12-15","rpe":"1 RIR","rest":75,"target_reps":null,"note":"High-to-low pulleys. Squeeze inner chest at midline.","muscles":["chest"],"weight_kg":13.75},{"name":"Tricep Rope Pushdown","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Spread the rope at lockout. Elbows pinned to sides.","muscles":["triceps"],"weight_kg":26.25},{"name":"Cable Rear Delt Fly","type":"accessory","sets":4,"reps":"15-20","rpe":"1 RIR","rest":45,"target_reps":null,"note":"Cross-body. Lead with elbows, not wrists.","muscles":["rear delts"],"weight_kg":8.75}]},"2":{"name":"PULL \\u2014 Heavy Row","exercises":[{"name":"Pull-up","type":"main","sets":4,"reps":"6-10 (last: AMRAP)","rpe":"2-3 RIR","rest":150,"target_reps":10,"note":"Add weight via belt when 10 reps clean. BW or assisted otherwise.","muscles":["lats","biceps"],"weight_kg":"bw"},{"name":"Barbell Row","type":"main","sets":4,"reps":"6-8 (last: AMRAP)","rpe":"2-3 RIR","rest":150,"target_reps":10,"note":"Pendlay or bent. Bar to lower chest. No lazy reps.","muscles":["upper back","lats","biceps"],"weight_kg":62.5},{"name":"Lat Pulldown (close neutral)","type":"main","sets":3,"reps":"10-12","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"Different angle from pull-ups. Drive elbows to ribs.","muscles":["lats","biceps"],"weight_kg":52.5},{"name":"Face Pull","type":"accessory","sets":4,"reps":"15-20","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Rope to forehead. External rotate at end. Rear delt + healthy shoulders.","muscles":["rear delts"],"weight_kg":26.25},{"name":"Incline DB Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Bench at 45\\u00b0. Long head stretch. Slow eccentric, 3-second negative.","muscles":["biceps"],"weight_kg":13.75},{"name":"Hammer Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Neutral grip. Brachialis + forearm thickness.","muscles":["biceps"],"weight_kg":13.75}]},"3":{"name":"LEGS","exercises":[{"name":"Squat","type":"main","sets":3,"reps":"6-8 (last: AMRAP)","rpe":"2-3 RIR","rest":180,"target_reps":10,"note":"Brace. Full depth. Drive through midfoot.","muscles":["quads","glutes"],"weight_kg":92.5},{"name":"Romanian Deadlift","type":"main","sets":3,"reps":"8-10","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"Hinge, neutral spine. Stretch hams. Don't squat the lift.","muscles":["hamstrings","glutes"],"weight_kg":102.5},{"name":"Leg Press","type":"main","sets":3,"reps":"10-12","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"Feet shoulder-width, mid-platform. Quad emphasis.","muscles":["quads","glutes"],"weight_kg":142.5},{"name":"Seated Leg Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":75,"target_reps":null,"note":"Hams in shortened position. Squeeze 1 sec at peak.","muscles":["hamstrings"],"weight_kg":36.25},{"name":"Standing Calf Raise","type":"accessory","sets":4,"reps":"10-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Full ROM, deep stretch at bottom. Slow eccentric.","muscles":["calves"],"weight_kg":61.25},{"name":"Hanging Leg Raise","type":"accessory","sets":3,"reps":"10-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Slow, controlled. No swinging. Add ankle weights when 15 is easy.","muscles":["abs"],"weight_kg":"bw"}]},"4":{"name":"UPPER \\u2014 Volume Bench","exercises":[{"name":"Bench Press (volume)","type":"main","sets":4,"reps":"8-10","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"Same lift as Push Day, lighter weight, more reps. RPE 8.","muscles":["chest","triceps"],"weight_kg":62.5},{"name":"Chest-Supported DB Row","type":"main","sets":3,"reps":"10-12","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"Squeeze shoulder blades. No body english.","muscles":["upper back","lats"],"weight_kg":25.0},{"name":"Seated DB Shoulder Press","type":"main","sets":3,"reps":"8-10","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"Vertical bench. Stop just before lockout to keep tension.","muscles":["front delts","side delts","triceps"],"weight_kg":20.0},{"name":"DB Lateral Raise","type":"accessory","sets":4,"reps":"10-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Slight forward lean. Lead with elbow. Don't shrug.","muscles":["side delts"],"weight_kg":8.75},{"name":"EZ Bar Curl","type":"accessory","sets":3,"reps":"8-10","rpe":"1 RIR","rest":75,"target_reps":null,"note":"Wide grip = inner head bias. Strict form, no hip thrust.","muscles":["biceps"],"weight_kg":26.25},{"name":"Overhead Tricep Cable Ext","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Rope, kneeling or seated. Long head stretch under load.","muscles":["triceps"],"weight_kg":23.75}]},"5":{"name":"LOWER + Arm/Delt Finish","exercises":[{"name":"Hip Thrust","type":"main","sets":3,"reps":"8-12 (last: AMRAP)","rpe":"2-3 RIR","rest":120,"target_reps":13,"note":"Bar over hips, padding. Squeeze glutes hard at top, 1-sec hold.","muscles":["glutes","hamstrings"],"weight_kg":82.5},{"name":"Bulgarian Split Squat","type":"main","sets":3,"reps":"10-12/leg","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"DBs at sides. Front foot far enough for vertical shin.","muscles":["quads","glutes"],"weight_kg":15.0},{"name":"Seated Calf Raise","type":"accessory","sets":4,"reps":"12-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Soleus emphasis. Pause 1 sec at top.","muscles":["calves"],"weight_kg":26.25},{"name":"Cable Lateral Raise","type":"accessory","sets":4,"reps":"12-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"4th lateral session of the week. Width is built on frequency.","muscles":["side delts"],"weight_kg":8.75},{"name":"Preacher Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Short head bias. No bouncing at bottom \\u2014 pause and reverse.","muscles":["biceps"],"weight_kg":23.75},{"name":"Cable Crunch","type":"accessory","sets":3,"reps":"12-15","rpe":"1 RIR","rest":45,"target_reps":null,"note":"Kneel, rope at base of skull. Crunch by flexing spine, not hip.","muscles":["abs"],"weight_kg":"MAX"}]}}},"5":{"week":5,"title":"Push","days":{"1":{"name":"PUSH \\u2014 Heavy Bench","exercises":[{"name":"Bench Press","type":"main","sets":4,"reps":"3-5 (last: AMRAP)","rpe":"2-3 RIR","rest":180,"target_reps":6,"note":"The strength lift. Tight upper back, feet planted, drive.","muscles":["chest","triceps"],"weight_kg":75.0},{"name":"Incline DB Press","type":"main","sets":3,"reps":"8-10","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"30-45\\u00b0 bench. Bar path tracks upper chest.","muscles":["chest","triceps"],"weight_kg":25.0},{"name":"Cable Lateral Raise","type":"accessory","sets":4,"reps":"12-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"1 arm at a time, lean away from stack. Pinky up at top.","muscles":["side delts"],"weight_kg":8.75},{"name":"Cable Chest Fly","type":"accessory","sets":3,"reps":"12-15","rpe":"1 RIR","rest":75,"target_reps":null,"note":"High-to-low pulleys. Squeeze inner chest at midline.","muscles":["chest"],"weight_kg":13.75},{"name":"Tricep Rope Pushdown","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Spread the rope at lockout. Elbows pinned to sides.","muscles":["triceps"],"weight_kg":26.25},{"name":"Cable Rear Delt Fly","type":"accessory","sets":4,"reps":"15-20","rpe":"1 RIR","rest":45,"target_reps":null,"note":"Cross-body. Lead with elbows, not wrists.","muscles":["rear delts"],"weight_kg":8.75}]},"2":{"name":"PULL \\u2014 Heavy Row","exercises":[{"name":"Pull-up","type":"main","sets":4,"reps":"6-10 (last: AMRAP)","rpe":"2-3 RIR","rest":150,"target_reps":10,"note":"Add weight via belt when 10 reps clean. BW or assisted otherwise.","muscles":["lats","biceps"],"weight_kg":"bw"},{"name":"Barbell Row","type":"main","sets":4,"reps":"6-8 (last: AMRAP)","rpe":"2-3 RIR","rest":150,"target_reps":10,"note":"Pendlay or bent. Bar to lower chest. No lazy reps.","muscles":["upper back","lats","biceps"],"weight_kg":65.0},{"name":"Lat Pulldown (close neutral)","type":"main","sets":3,"reps":"10-12","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"Different angle from pull-ups. Drive elbows to ribs.","muscles":["lats","biceps"],"weight_kg":52.5},{"name":"Face Pull","type":"accessory","sets":4,"reps":"15-20","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Rope to forehead. External rotate at end. Rear delt + healthy shoulders.","muscles":["rear delts"],"weight_kg":26.25},{"name":"Incline DB Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Bench at 45\\u00b0. Long head stretch. Slow eccentric, 3-second negative.","muscles":["biceps"],"weight_kg":13.75},{"name":"Hammer Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Neutral grip. Brachialis + forearm thickness.","muscles":["biceps"],"weight_kg":13.75}]},"3":{"name":"LEGS","exercises":[{"name":"Squat","type":"main","sets":3,"reps":"6-8 (last: AMRAP)","rpe":"2-3 RIR","rest":180,"target_reps":10,"note":"Brace. Full depth. Drive through midfoot.","muscles":["quads","glutes"],"weight_kg":95.0},{"name":"Romanian Deadlift","type":"main","sets":3,"reps":"8-10","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"Hinge, neutral spine. Stretch hams. Don't squat the lift.","muscles":["hamstrings","glutes"],"weight_kg":102.5},{"name":"Leg Press","type":"main","sets":3,"reps":"10-12","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"Feet shoulder-width, mid-platform. Quad emphasis.","muscles":["quads","glutes"],"weight_kg":142.5},{"name":"Seated Leg Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":75,"target_reps":null,"note":"Hams in shortened position. Squeeze 1 sec at peak.","muscles":["hamstrings"],"weight_kg":36.25},{"name":"Standing Calf Raise","type":"accessory","sets":4,"reps":"10-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Full ROM, deep stretch at bottom. Slow eccentric.","muscles":["calves"],"weight_kg":61.25},{"name":"Hanging Leg Raise","type":"accessory","sets":3,"reps":"10-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Slow, controlled. No swinging. Add ankle weights when 15 is easy.","muscles":["abs"],"weight_kg":"bw"}]},"4":{"name":"UPPER \\u2014 Volume Bench","exercises":[{"name":"Bench Press (volume)","type":"main","sets":4,"reps":"8-10","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"Same lift as Push Day, lighter weight, more reps. RPE 8.","muscles":["chest","triceps"],"weight_kg":62.5},{"name":"Chest-Supported DB Row","type":"main","sets":3,"reps":"10-12","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"Squeeze shoulder blades. No body english.","muscles":["upper back","lats"],"weight_kg":25.0},{"name":"Seated DB Shoulder Press","type":"main","sets":3,"reps":"8-10","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"Vertical bench. Stop just before lockout to keep tension.","muscles":["front delts","side delts","triceps"],"weight_kg":20.0},{"name":"DB Lateral Raise","type":"accessory","sets":4,"reps":"10-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Slight forward lean. Lead with elbow. Don't shrug.","muscles":["side delts"],"weight_kg":8.75},{"name":"EZ Bar Curl","type":"accessory","sets":3,"reps":"8-10","rpe":"1 RIR","rest":75,"target_reps":null,"note":"Wide grip = inner head bias. Strict form, no hip thrust.","muscles":["biceps"],"weight_kg":26.25},{"name":"Overhead Tricep Cable Ext","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Rope, kneeling or seated. Long head stretch under load.","muscles":["triceps"],"weight_kg":23.75}]},"5":{"name":"LOWER + Arm/Delt Finish","exercises":[{"name":"Hip Thrust","type":"main","sets":3,"reps":"8-12 (last: AMRAP)","rpe":"2-3 RIR","rest":120,"target_reps":13,"note":"Bar over hips, padding. Squeeze glutes hard at top, 1-sec hold.","muscles":["glutes","hamstrings"],"weight_kg":85.0},{"name":"Bulgarian Split Squat","type":"main","sets":3,"reps":"10-12/leg","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"DBs at sides. Front foot far enough for vertical shin.","muscles":["quads","glutes"],"weight_kg":15.0},{"name":"Seated Calf Raise","type":"accessory","sets":4,"reps":"12-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Soleus emphasis. Pause 1 sec at top.","muscles":["calves"],"weight_kg":26.25},{"name":"Cable Lateral Raise","type":"accessory","sets":4,"reps":"12-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"4th lateral session of the week. Width is built on frequency.","muscles":["side delts"],"weight_kg":8.75},{"name":"Preacher Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Short head bias. No bouncing at bottom \\u2014 pause and reverse.","muscles":["biceps"],"weight_kg":23.75},{"name":"Cable Crunch","type":"accessory","sets":3,"reps":"12-15","rpe":"1 RIR","rest":45,"target_reps":null,"note":"Kneel, rope at base of skull. Crunch by flexing spine, not hip.","muscles":["abs"],"weight_kg":"MAX"}]}}},"6":{"week":6,"title":"Grind","days":{"1":{"name":"PUSH \\u2014 Heavy Bench","exercises":[{"name":"Bench Press","type":"main","sets":4,"reps":"3-5 (last: AMRAP)","rpe":"2-3 RIR","rest":180,"target_reps":6,"note":"The strength lift. Tight upper back, feet planted, drive.","muscles":["chest","triceps"],"weight_kg":75.0},{"name":"Incline DB Press","type":"main","sets":3,"reps":"8-10","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"30-45\\u00b0 bench. Bar path tracks upper chest.","muscles":["chest","triceps"],"weight_kg":25.0},{"name":"Cable Lateral Raise","type":"accessory","sets":4,"reps":"12-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"1 arm at a time, lean away from stack. Pinky up at top.","muscles":["side delts"],"weight_kg":8.75},{"name":"Cable Chest Fly","type":"accessory","sets":3,"reps":"12-15","rpe":"1 RIR","rest":75,"target_reps":null,"note":"High-to-low pulleys. Squeeze inner chest at midline.","muscles":["chest"],"weight_kg":13.75},{"name":"Tricep Rope Pushdown","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Spread the rope at lockout. Elbows pinned to sides.","muscles":["triceps"],"weight_kg":26.25},{"name":"Cable Rear Delt Fly","type":"accessory","sets":4,"reps":"15-20","rpe":"1 RIR","rest":45,"target_reps":null,"note":"Cross-body. Lead with elbows, not wrists.","muscles":["rear delts"],"weight_kg":8.75}]},"2":{"name":"PULL \\u2014 Heavy Row","exercises":[{"name":"Pull-up","type":"main","sets":4,"reps":"6-10 (last: AMRAP)","rpe":"2-3 RIR","rest":150,"target_reps":10,"note":"Add weight via belt when 10 reps clean. BW or assisted otherwise.","muscles":["lats","biceps"],"weight_kg":"bw"},{"name":"Barbell Row","type":"main","sets":4,"reps":"6-8 (last: AMRAP)","rpe":"2-3 RIR","rest":150,"target_reps":10,"note":"Pendlay or bent. Bar to lower chest. No lazy reps.","muscles":["upper back","lats","biceps"],"weight_kg":65.0},{"name":"Lat Pulldown (close neutral)","type":"main","sets":3,"reps":"10-12","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"Different angle from pull-ups. Drive elbows to ribs.","muscles":["lats","biceps"],"weight_kg":52.5},{"name":"Face Pull","type":"accessory","sets":4,"reps":"15-20","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Rope to forehead. External rotate at end. Rear delt + healthy shoulders.","muscles":["rear delts"],"weight_kg":26.25},{"name":"Incline DB Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Bench at 45\\u00b0. Long head stretch. Slow eccentric, 3-second negative.","muscles":["biceps"],"weight_kg":13.75},{"name":"Hammer Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Neutral grip. Brachialis + forearm thickness.","muscles":["biceps"],"weight_kg":13.75}]},"3":{"name":"LEGS","exercises":[{"name":"Squat","type":"main","sets":3,"reps":"6-8 (last: AMRAP)","rpe":"2-3 RIR","rest":180,"target_reps":10,"note":"Brace. Full depth. Drive through midfoot.","muscles":["quads","glutes"],"weight_kg":95.0},{"name":"Romanian Deadlift","type":"main","sets":3,"reps":"8-10","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"Hinge, neutral spine. Stretch hams. Don't squat the lift.","muscles":["hamstrings","glutes"],"weight_kg":102.5},{"name":"Leg Press","type":"main","sets":3,"reps":"10-12","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"Feet shoulder-width, mid-platform. Quad emphasis.","muscles":["quads","glutes"],"weight_kg":142.5},{"name":"Seated Leg Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":75,"target_reps":null,"note":"Hams in shortened position. Squeeze 1 sec at peak.","muscles":["hamstrings"],"weight_kg":36.25},{"name":"Standing Calf Raise","type":"accessory","sets":4,"reps":"10-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Full ROM, deep stretch at bottom. Slow eccentric.","muscles":["calves"],"weight_kg":61.25},{"name":"Hanging Leg Raise","type":"accessory","sets":3,"reps":"10-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Slow, controlled. No swinging. Add ankle weights when 15 is easy.","muscles":["abs"],"weight_kg":"bw"}]},"4":{"name":"UPPER \\u2014 Volume Bench","exercises":[{"name":"Bench Press (volume)","type":"main","sets":4,"reps":"8-10","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"Same lift as Push Day, lighter weight, more reps. RPE 8.","muscles":["chest","triceps"],"weight_kg":62.5},{"name":"Chest-Supported DB Row","type":"main","sets":3,"reps":"10-12","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"Squeeze shoulder blades. No body english.","muscles":["upper back","lats"],"weight_kg":25.0},{"name":"Seated DB Shoulder Press","type":"main","sets":3,"reps":"8-10","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"Vertical bench. Stop just before lockout to keep tension.","muscles":["front delts","side delts","triceps"],"weight_kg":20.0},{"name":"DB Lateral Raise","type":"accessory","sets":4,"reps":"10-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Slight forward lean. Lead with elbow. Don't shrug.","muscles":["side delts"],"weight_kg":8.75},{"name":"EZ Bar Curl","type":"accessory","sets":3,"reps":"8-10","rpe":"1 RIR","rest":75,"target_reps":null,"note":"Wide grip = inner head bias. Strict form, no hip thrust.","muscles":["biceps"],"weight_kg":26.25},{"name":"Overhead Tricep Cable Ext","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Rope, kneeling or seated. Long head stretch under load.","muscles":["triceps"],"weight_kg":23.75}]},"5":{"name":"LOWER + Arm/Delt Finish","exercises":[{"name":"Hip Thrust","type":"main","sets":3,"reps":"8-12 (last: AMRAP)","rpe":"2-3 RIR","rest":120,"target_reps":13,"note":"Bar over hips, padding. Squeeze glutes hard at top, 1-sec hold.","muscles":["glutes","hamstrings"],"weight_kg":85.0},{"name":"Bulgarian Split Squat","type":"main","sets":3,"reps":"10-12/leg","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"DBs at sides. Front foot far enough for vertical shin.","muscles":["quads","glutes"],"weight_kg":15.0},{"name":"Seated Calf Raise","type":"accessory","sets":4,"reps":"12-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Soleus emphasis. Pause 1 sec at top.","muscles":["calves"],"weight_kg":26.25},{"name":"Cable Lateral Raise","type":"accessory","sets":4,"reps":"12-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"4th lateral session of the week. Width is built on frequency.","muscles":["side delts"],"weight_kg":8.75},{"name":"Preacher Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Short head bias. No bouncing at bottom \\u2014 pause and reverse.","muscles":["biceps"],"weight_kg":23.75},{"name":"Cable Crunch","type":"accessory","sets":3,"reps":"12-15","rpe":"1 RIR","rest":45,"target_reps":null,"note":"Kneel, rope at base of skull. Crunch by flexing spine, not hip.","muscles":["abs"],"weight_kg":"MAX"}]}}},"7":{"week":7,"title":"Peak","days":{"1":{"name":"PUSH \\u2014 Heavy Bench","exercises":[{"name":"Bench Press","type":"main","sets":4,"reps":"3-5 (last: AMRAP)","rpe":"2-3 RIR","rest":180,"target_reps":6,"note":"The strength lift. Tight upper back, feet planted, drive.","muscles":["chest","triceps"],"weight_kg":77.5},{"name":"Incline DB Press","type":"main","sets":3,"reps":"8-10","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"30-45\\u00b0 bench. Bar path tracks upper chest.","muscles":["chest","triceps"],"weight_kg":27.5},{"name":"Cable Lateral Raise","type":"accessory","sets":4,"reps":"12-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"1 arm at a time, lean away from stack. Pinky up at top.","muscles":["side delts"],"weight_kg":10.0},{"name":"Cable Chest Fly","type":"accessory","sets":3,"reps":"12-15","rpe":"1 RIR","rest":75,"target_reps":null,"note":"High-to-low pulleys. Squeeze inner chest at midline.","muscles":["chest"],"weight_kg":15.0},{"name":"Tricep Rope Pushdown","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Spread the rope at lockout. Elbows pinned to sides.","muscles":["triceps"],"weight_kg":27.5},{"name":"Cable Rear Delt Fly","type":"accessory","sets":4,"reps":"15-20","rpe":"1 RIR","rest":45,"target_reps":null,"note":"Cross-body. Lead with elbows, not wrists.","muscles":["rear delts"],"weight_kg":10.0}]},"2":{"name":"PULL \\u2014 Heavy Row","exercises":[{"name":"Pull-up","type":"main","sets":4,"reps":"6-10 (last: AMRAP)","rpe":"2-3 RIR","rest":150,"target_reps":10,"note":"Add weight via belt when 10 reps clean. BW or assisted otherwise.","muscles":["lats","biceps"],"weight_kg":"bw"},{"name":"Barbell Row","type":"main","sets":4,"reps":"6-8 (last: AMRAP)","rpe":"2-3 RIR","rest":150,"target_reps":10,"note":"Pendlay or bent. Bar to lower chest. No lazy reps.","muscles":["upper back","lats","biceps"],"weight_kg":67.5},{"name":"Lat Pulldown (close neutral)","type":"main","sets":3,"reps":"10-12","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"Different angle from pull-ups. Drive elbows to ribs.","muscles":["lats","biceps"],"weight_kg":55.0},{"name":"Face Pull","type":"accessory","sets":4,"reps":"15-20","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Rope to forehead. External rotate at end. Rear delt + healthy shoulders.","muscles":["rear delts"],"weight_kg":27.5},{"name":"Incline DB Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Bench at 45\\u00b0. Long head stretch. Slow eccentric, 3-second negative.","muscles":["biceps"],"weight_kg":15.0},{"name":"Hammer Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Neutral grip. Brachialis + forearm thickness.","muscles":["biceps"],"weight_kg":15.0}]},"3":{"name":"LEGS","exercises":[{"name":"Squat","type":"main","sets":3,"reps":"6-8 (last: AMRAP)","rpe":"2-3 RIR","rest":180,"target_reps":10,"note":"Brace. Full depth. Drive through midfoot.","muscles":["quads","glutes"],"weight_kg":97.5},{"name":"Romanian Deadlift","type":"main","sets":3,"reps":"8-10","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"Hinge, neutral spine. Stretch hams. Don't squat the lift.","muscles":["hamstrings","glutes"],"weight_kg":105.0},{"name":"Leg Press","type":"main","sets":3,"reps":"10-12","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"Feet shoulder-width, mid-platform. Quad emphasis.","muscles":["quads","glutes"],"weight_kg":145.0},{"name":"Seated Leg Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":75,"target_reps":null,"note":"Hams in shortened position. Squeeze 1 sec at peak.","muscles":["hamstrings"],"weight_kg":37.5},{"name":"Standing Calf Raise","type":"accessory","sets":4,"reps":"10-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Full ROM, deep stretch at bottom. Slow eccentric.","muscles":["calves"],"weight_kg":62.5},{"name":"Hanging Leg Raise","type":"accessory","sets":3,"reps":"10-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Slow, controlled. No swinging. Add ankle weights when 15 is easy.","muscles":["abs"],"weight_kg":"bw"}]},"4":{"name":"UPPER \\u2014 Volume Bench","exercises":[{"name":"Bench Press (volume)","type":"main","sets":4,"reps":"8-10","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"Same lift as Push Day, lighter weight, more reps. RPE 8.","muscles":["chest","triceps"],"weight_kg":65.0},{"name":"Chest-Supported DB Row","type":"main","sets":3,"reps":"10-12","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"Squeeze shoulder blades. No body english.","muscles":["upper back","lats"],"weight_kg":27.5},{"name":"Seated DB Shoulder Press","type":"main","sets":3,"reps":"8-10","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"Vertical bench. Stop just before lockout to keep tension.","muscles":["front delts","side delts","triceps"],"weight_kg":22.5},{"name":"DB Lateral Raise","type":"accessory","sets":4,"reps":"10-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Slight forward lean. Lead with elbow. Don't shrug.","muscles":["side delts"],"weight_kg":10.0},{"name":"EZ Bar Curl","type":"accessory","sets":3,"reps":"8-10","rpe":"1 RIR","rest":75,"target_reps":null,"note":"Wide grip = inner head bias. Strict form, no hip thrust.","muscles":["biceps"],"weight_kg":27.5},{"name":"Overhead Tricep Cable Ext","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Rope, kneeling or seated. Long head stretch under load.","muscles":["triceps"],"weight_kg":25.0}]},"5":{"name":"LOWER + Arm/Delt Finish","exercises":[{"name":"Hip Thrust","type":"main","sets":3,"reps":"8-12 (last: AMRAP)","rpe":"2-3 RIR","rest":120,"target_reps":13,"note":"Bar over hips, padding. Squeeze glutes hard at top, 1-sec hold.","muscles":["glutes","hamstrings"],"weight_kg":87.5},{"name":"Bulgarian Split Squat","type":"main","sets":3,"reps":"10-12/leg","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"DBs at sides. Front foot far enough for vertical shin.","muscles":["quads","glutes"],"weight_kg":17.5},{"name":"Seated Calf Raise","type":"accessory","sets":4,"reps":"12-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Soleus emphasis. Pause 1 sec at top.","muscles":["calves"],"weight_kg":27.5},{"name":"Cable Lateral Raise","type":"accessory","sets":4,"reps":"12-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"4th lateral session of the week. Width is built on frequency.","muscles":["side delts"],"weight_kg":10.0},{"name":"Preacher Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Short head bias. No bouncing at bottom \\u2014 pause and reverse.","muscles":["biceps"],"weight_kg":25.0},{"name":"Cable Crunch","type":"accessory","sets":3,"reps":"12-15","rpe":"1 RIR","rest":45,"target_reps":null,"note":"Kneel, rope at base of skull. Crunch by flexing spine, not hip.","muscles":["abs"],"weight_kg":"MAX"}]}}},"8":{"week":8,"title":"Send","days":{"1":{"name":"PUSH \\u2014 Heavy Bench","exercises":[{"name":"Bench Press","type":"main","sets":4,"reps":"3-5 (last: AMRAP)","rpe":"2-3 RIR","rest":180,"target_reps":6,"note":"The strength lift. Tight upper back, feet planted, drive.","muscles":["chest","triceps"],"weight_kg":80.0},{"name":"Incline DB Press","type":"main","sets":3,"reps":"8-10","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"30-45\\u00b0 bench. Bar path tracks upper chest.","muscles":["chest","triceps"],"weight_kg":27.5},{"name":"Cable Lateral Raise","type":"accessory","sets":4,"reps":"12-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"1 arm at a time, lean away from stack. Pinky up at top.","muscles":["side delts"],"weight_kg":10.0},{"name":"Cable Chest Fly","type":"accessory","sets":3,"reps":"12-15","rpe":"1 RIR","rest":75,"target_reps":null,"note":"High-to-low pulleys. Squeeze inner chest at midline.","muscles":["chest"],"weight_kg":15.0},{"name":"Tricep Rope Pushdown","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Spread the rope at lockout. Elbows pinned to sides.","muscles":["triceps"],"weight_kg":27.5},{"name":"Cable Rear Delt Fly","type":"accessory","sets":4,"reps":"15-20","rpe":"1 RIR","rest":45,"target_reps":null,"note":"Cross-body. Lead with elbows, not wrists.","muscles":["rear delts"],"weight_kg":10.0}]},"2":{"name":"PULL \\u2014 Heavy Row","exercises":[{"name":"Pull-up","type":"main","sets":4,"reps":"6-10 (last: AMRAP)","rpe":"2-3 RIR","rest":150,"target_reps":10,"note":"Add weight via belt when 10 reps clean. BW or assisted otherwise.","muscles":["lats","biceps"],"weight_kg":"bw"},{"name":"Barbell Row","type":"main","sets":4,"reps":"6-8 (last: AMRAP)","rpe":"2-3 RIR","rest":150,"target_reps":10,"note":"Pendlay or bent. Bar to lower chest. No lazy reps.","muscles":["upper back","lats","biceps"],"weight_kg":70.0},{"name":"Lat Pulldown (close neutral)","type":"main","sets":3,"reps":"10-12","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"Different angle from pull-ups. Drive elbows to ribs.","muscles":["lats","biceps"],"weight_kg":55.0},{"name":"Face Pull","type":"accessory","sets":4,"reps":"15-20","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Rope to forehead. External rotate at end. Rear delt + healthy shoulders.","muscles":["rear delts"],"weight_kg":27.5},{"name":"Incline DB Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Bench at 45\\u00b0. Long head stretch. Slow eccentric, 3-second negative.","muscles":["biceps"],"weight_kg":15.0},{"name":"Hammer Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Neutral grip. Brachialis + forearm thickness.","muscles":["biceps"],"weight_kg":15.0}]},"3":{"name":"LEGS","exercises":[{"name":"Squat","type":"main","sets":3,"reps":"6-8 (last: AMRAP)","rpe":"2-3 RIR","rest":180,"target_reps":10,"note":"Brace. Full depth. Drive through midfoot.","muscles":["quads","glutes"],"weight_kg":100.0},{"name":"Romanian Deadlift","type":"main","sets":3,"reps":"8-10","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"Hinge, neutral spine. Stretch hams. Don't squat the lift.","muscles":["hamstrings","glutes"],"weight_kg":105.0},{"name":"Leg Press","type":"main","sets":3,"reps":"10-12","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"Feet shoulder-width, mid-platform. Quad emphasis.","muscles":["quads","glutes"],"weight_kg":145.0},{"name":"Seated Leg Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":75,"target_reps":null,"note":"Hams in shortened position. Squeeze 1 sec at peak.","muscles":["hamstrings"],"weight_kg":37.5},{"name":"Standing Calf Raise","type":"accessory","sets":4,"reps":"10-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Full ROM, deep stretch at bottom. Slow eccentric.","muscles":["calves"],"weight_kg":62.5},{"name":"Hanging Leg Raise","type":"accessory","sets":3,"reps":"10-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Slow, controlled. No swinging. Add ankle weights when 15 is easy.","muscles":["abs"],"weight_kg":"bw"}]},"4":{"name":"UPPER \\u2014 Volume Bench","exercises":[{"name":"Bench Press (volume)","type":"main","sets":4,"reps":"8-10","rpe":"1-2 RIR","rest":120,"target_reps":null,"note":"Same lift as Push Day, lighter weight, more reps. RPE 8.","muscles":["chest","triceps"],"weight_kg":65.0},{"name":"Chest-Supported DB Row","type":"main","sets":3,"reps":"10-12","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"Squeeze shoulder blades. No body english.","muscles":["upper back","lats"],"weight_kg":27.5},{"name":"Seated DB Shoulder Press","type":"main","sets":3,"reps":"8-10","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"Vertical bench. Stop just before lockout to keep tension.","muscles":["front delts","side delts","triceps"],"weight_kg":22.5},{"name":"DB Lateral Raise","type":"accessory","sets":4,"reps":"10-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Slight forward lean. Lead with elbow. Don't shrug.","muscles":["side delts"],"weight_kg":10.0},{"name":"EZ Bar Curl","type":"accessory","sets":3,"reps":"8-10","rpe":"1 RIR","rest":75,"target_reps":null,"note":"Wide grip = inner head bias. Strict form, no hip thrust.","muscles":["biceps"],"weight_kg":27.5},{"name":"Overhead Tricep Cable Ext","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Rope, kneeling or seated. Long head stretch under load.","muscles":["triceps"],"weight_kg":25.0}]},"5":{"name":"LOWER + Arm/Delt Finish","exercises":[{"name":"Hip Thrust","type":"main","sets":3,"reps":"8-12 (last: AMRAP)","rpe":"2-3 RIR","rest":120,"target_reps":13,"note":"Bar over hips, padding. Squeeze glutes hard at top, 1-sec hold.","muscles":["glutes","hamstrings"],"weight_kg":90.0},{"name":"Bulgarian Split Squat","type":"main","sets":3,"reps":"10-12/leg","rpe":"1-2 RIR","rest":90,"target_reps":null,"note":"DBs at sides. Front foot far enough for vertical shin.","muscles":["quads","glutes"],"weight_kg":17.5},{"name":"Seated Calf Raise","type":"accessory","sets":4,"reps":"12-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Soleus emphasis. Pause 1 sec at top.","muscles":["calves"],"weight_kg":27.5},{"name":"Cable Lateral Raise","type":"accessory","sets":4,"reps":"12-15","rpe":"1 RIR","rest":60,"target_reps":null,"note":"4th lateral session of the week. Width is built on frequency.","muscles":["side delts"],"weight_kg":10.0},{"name":"Preacher Curl","type":"accessory","sets":3,"reps":"10-12","rpe":"1 RIR","rest":60,"target_reps":null,"note":"Short head bias. No bouncing at bottom \\u2014 pause and reverse.","muscles":["biceps"],"weight_kg":25.0},{"name":"Cable Crunch","type":"accessory","sets":3,"reps":"12-15","rpe":"1 RIR","rest":45,"target_reps":null,"note":"Kneel, rope at base of skull. Crunch by flexing spine, not hip.","muscles":["abs"],"weight_kg":"MAX"}]}}}}}`);
+const STORAGE_KEY = "wt-hybrid-v1";
+
+// ============ CONSTANTS ============
+const KG_PLATES = [25, 20, 15, 10, 5, 2.5, 1.25];
+const BAR_KG = 20;
+const DAY_LABELS = { 1: "PUSH", 2: "PULL", 3: "LEGS", 4: "UPPER", 5: "LOWER" };
+const DAY_COLORS = {
+  1: "#ff3b5c",  // push - red
+  2: "#3b82f6",  // pull - blue
+  3: "#22c55e",  // legs - green
+  4: "#f5a524",  // upper - orange
+  5: "#a855f7",  // lower - purple
+};
+
+// ============ HELPERS ============
+function calcPlatesPerSide(totalKg) {
+  if (totalKg == null || isNaN(totalKg)) return null;
+  const num = Number(totalKg);
+  if (num < BAR_KG) return null;
+  let remaining = (num - BAR_KG) / 2;
+  if (remaining === 0) return [];
+  const plates = [];
+  for (const p of KG_PLATES) {
+    while (remaining >= p - 0.001) {
+      plates.push(p);
+      remaining = Math.round((remaining - p) * 1000) / 1000;
+    }
+  }
+  if (remaining > 0.05) return null;
+  return plates;
+}
+
+function platesToShort(plates) {
+  if (!plates || plates.length === 0) return null;
+  const counts = {};
+  plates.forEach((p) => (counts[p] = (counts[p] || 0) + 1));
+  return Object.entries(counts)
+    .sort((a, b) => Number(b[0]) - Number(a[0]))
+    .map(([p, c]) => (c > 1 ? `${c}×${p}` : `${p}`))
+    .join(" + ");
+}
+
+function fmtTime(s) {
+  return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+}
+
+function plateClass(p) {
+  return "plate plate--" + String(p).replace(".", "-");
+}
+
+function defSets(ex) {
+  const arr = [];
+  for (let i = 0; i < ex.sets; i++) {
+    const w = ex.weight_kg;
+    const wStr = w === "bw" || w === "MAX" || w == null ? String(w || "") : String(w);
+    arr.push({ w: wStr, r: "", d: false });
+  }
+  return arr;
+}
+
+// Epley 1RM: w * (1 + reps/30)
+function epley(w, r) {
+  const wn = parseFloat(w);
+  const rn = parseInt(r, 10);
+  if (!wn || !rn || rn < 1) return null;
+  return Math.round(wn * (1 + rn / 30) * 10) / 10;
+}
+
+// Find the most recent prior log of an exercise by name
+function findLastSession(logs, currentDayKey, exerciseName) {
+  // Parse current key: "w3d1" → week 3, day 1
+  const m = currentDayKey.match(/w(\d+)d(\d+)/);
+  if (!m) return null;
+  const curW = parseInt(m[1], 10);
+  const curD = parseInt(m[2], 10);
+
+  // Search backwards from current position
+  for (let w = curW; w >= 1; w--) {
+    const dStart = w === curW ? curD - 1 : 5;
+    for (let d = dStart; d >= 1; d--) {
+      const key = "w" + w + "d" + d;
+      const log = logs[key];
+      if (!log) continue;
+      // Check each exercise log in this day for matching name
+      const dayData = PROGRAM.weeks[String(w)]?.days[String(d)];
+      if (!dayData) continue;
+      for (let i = 0; i < dayData.exercises.length; i++) {
+        if (dayData.exercises[i].name === exerciseName && log[i]?.sets) {
+          // Found a prior session — pick first non-empty set
+          const completedSets = log[i].sets.filter(s => s.d && s.r);
+          if (completedSets.length > 0) {
+            return {
+              weekKey: key,
+              week: w,
+              day: d,
+              sets: log[i].sets.map(s => ({ w: s.w, r: s.r, d: s.d })),
+              completedSets
+            };
+          }
+        }
+      }
+    }
+  }
+  return null;
+}
+
+// ============ STYLES ============
+const STYLES = `
+:root {
+  --bg-0: #0a0a0f; --bg-1: #11121a; --bg-2: #1a1c26;
+  --line: rgba(255,255,255,0.06); --line-2: rgba(255,255,255,0.10);
+  --txt-1: #f4f4f7; --txt-2: rgba(244,244,247,0.65);
+  --txt-3: rgba(244,244,247,0.40); --txt-4: rgba(244,244,247,0.25);
+  --accent: #ff3b5c; --accent-soft: rgba(255,59,92,0.12);
+  --accent-line: rgba(255,59,92,0.25);
+  --warn: #f5a524; --good: #22c55e;
+  --good-soft: rgba(34,197,94,0.10); --good-line: rgba(34,197,94,0.25);
+  --info: #3b82f6;
+  --display: 'Bricolage Grotesque','Manrope',system-ui,sans-serif;
+  --body: 'Manrope',system-ui,sans-serif;
+  --mono: 'JetBrains Mono',ui-monospace,monospace;
+  --safe-bottom: env(safe-area-inset-bottom, 0);
+  --safe-top: env(safe-area-inset-top, 0);
+}
+.wt-root * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+.wt-root { font-family: var(--body); background: var(--bg-0); color: var(--txt-1); min-height: 100vh; -webkit-font-smoothing: antialiased; position: relative; overflow-x: hidden; }
+.wt-root::before { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,59,92,0.08), transparent 70%),
+              radial-gradient(ellipse 60% 40% at 100% 100%, rgba(59,130,246,0.05), transparent 70%); }
+.wt-root button { font-family: inherit; cursor: pointer; touch-action: manipulation; border: none; background: none; color: inherit; }
+.wt-root input { font-family: inherit; -webkit-appearance: none; appearance: none; }
+.wt-root input[type=number] { -moz-appearance: textfield; }
+.wt-root input[type=number]::-webkit-outer-spin-button,
+.wt-root input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+.app { position: relative; z-index: 1; max-width: 520px; margin: 0 auto; padding-bottom: calc(120px + var(--safe-bottom)); min-height: 100vh; }
+.app--with-timer { padding-bottom: calc(180px + var(--safe-bottom)); }
+
+.hd { position: sticky; top: 0; z-index: 50; background: rgba(10,10,15,0.85); backdrop-filter: blur(20px) saturate(140%); -webkit-backdrop-filter: blur(20px) saturate(140%); padding: calc(16px + var(--safe-top)) 16px 8px; border-bottom: 1px solid var(--line); }
+.hd-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+.hd-title { font-family: var(--display); font-weight: 800; font-size: 22px; letter-spacing: -0.02em; line-height: 1.05; margin: 0; }
+.hd-title-block { display: inline-block; background: linear-gradient(180deg, var(--txt-1) 0%, rgba(244,244,247,0.7) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hd-sub { font-size: 11px; color: var(--accent); font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 2px; display: flex; align-items: center; gap: 8px; }
+.hd-pct { text-align: right; font-family: var(--mono); font-size: 32px; font-weight: 700; line-height: 0.9; letter-spacing: -0.04em; }
+.hd-pct--done { color: var(--good); }
+.hd-pct-label { font-family: var(--body); font-size: 10px; color: var(--txt-3); font-weight: 500; margin-top: 4px; }
+.hd-save { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; padding: 2px 6px; border-radius: 4px; }
+.hd-save--saving { color: var(--warn); background: rgba(245,165,36,0.1); }
+.hd-save--saved { color: var(--good); background: var(--good-soft); }
+.hd-save--fail { color: var(--accent); background: var(--accent-soft); }
+
+.weeks { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; margin-bottom: 10px; }
+.wk { padding: 6px 0 5px; border-radius: 7px; text-align: center; color: var(--txt-3); border: 1px solid transparent; transition: all 0.15s ease; }
+.wk-num { font-family: var(--mono); font-weight: 700; font-size: 11px; line-height: 1; }
+.wk-pct { font-family: var(--body); font-size: 8px; opacity: 0.75; margin-top: 3px; line-height: 1; font-weight: 600; letter-spacing: 0.04em; }
+.wk--active { background: var(--accent-soft); border-color: var(--accent-line); color: var(--accent); }
+.wk--complete { color: var(--good); }
+
+.days { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 12px; }
+.dy { background: rgba(255,255,255,0.02); padding: 9px 4px 7px; border-radius: 9px; text-align: center; color: var(--txt-3); border-bottom: 2px solid transparent; transition: all 0.15s ease; }
+.dy-label { font-weight: 800; font-size: 10px; letter-spacing: 0.06em; }
+.dy-pct { font-family: var(--mono); font-size: 9px; margin-top: 2px; }
+.dy--active { color: var(--txt-1); background: rgba(255,255,255,0.06); }
+.dy--complete .dy-pct { color: var(--good); }
+
+.day-name { font-size: 13px; font-weight: 700; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: baseline; }
+
+.prog-bar { height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; margin-bottom: 14px; }
+.prog-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--accent), #ff7a92); transition: width 0.3s ease; }
+.prog-fill--done { background: var(--good); }
+
+.ex-list { padding: 0 16px; }
+.ex { background: var(--bg-1); border: 1px solid var(--line); border-radius: 14px; margin-bottom: 9px; overflow: hidden; transition: border-color 0.15s ease; }
+.ex--done { background: var(--good-soft); border-color: var(--good-line); }
+
+.ex-head { width: 100%; padding: 14px; display: flex; align-items: center; gap: 11px; text-align: left; }
+.ex-num { flex-shrink: 0; width: 30px; height: 30px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); font-family: var(--mono); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.ex--done .ex-num { background: var(--good); color: white; }
+.ex-info { flex: 1; min-width: 0; }
+.ex-name { font-weight: 700; font-size: 14px; line-height: 1.2; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ex-meta { font-size: 11px; color: var(--txt-3); font-family: var(--mono); font-weight: 500; }
+.ex-last { font-size: 10px; color: var(--info); font-family: var(--mono); font-weight: 500; margin-top: 2px; opacity: 0.85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ex-meta-tag { display: inline-block; font-size: 9px; font-family: var(--body); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 1px 5px; border-radius: 3px; margin-left: 6px; vertical-align: middle; }
+.ex-meta-tag--amrap { background: var(--accent-soft); color: var(--accent); }
+.ex-meta-tag--heavy { background: rgba(245,165,36,0.15); color: var(--warn); }
+.ex-prog { flex-shrink: 0; font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--txt-3); }
+.ex--done .ex-prog { color: var(--good); }
+.ex-chev { font-size: 10px; color: var(--txt-4); transition: transform 0.2s ease; margin-left: 3px; }
+.ex--open .ex-chev { transform: rotate(180deg); }
+
+.ex-body { padding: 0 14px 14px; }
+
+.coach-note { background: rgba(255,59,92,0.06); border-left: 3px solid var(--accent); border-radius: 6px; padding: 8px 11px; margin-bottom: 11px; font-size: 12px; color: var(--txt-2); line-height: 1.5; }
+.coach-note b { color: var(--accent); font-weight: 700; margin-right: 4px; }
+.coach-note small { display: block; margin-top: 4px; font-size: 10px; color: var(--txt-4); font-family: var(--mono); letter-spacing: 0.04em; }
+
+.last-session { background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.18); border-radius: 8px; padding: 9px 11px; margin-bottom: 11px; font-size: 11px; color: var(--info); line-height: 1.5; }
+.last-session-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--info); margin-bottom: 3px; }
+.last-session-data { font-family: var(--mono); color: var(--txt-2); font-size: 11px; font-weight: 600; }
+.last-session-1rm { display: inline-block; margin-left: 8px; padding: 1px 6px; background: rgba(59,130,246,0.15); border-radius: 3px; font-size: 10px; }
+
+.set-hd { display: grid; grid-template-columns: 28px 1fr 60px 36px; gap: 6px; padding: 0 0 4px; margin-bottom: 4px; font-size: 9px; font-weight: 700; color: var(--txt-4); text-transform: uppercase; letter-spacing: 0.1em; }
+.set-hd-num, .set-hd-r, .set-hd-d { text-align: center; }
+
+.set-row { display: grid; grid-template-columns: 28px 1fr 60px 36px; gap: 6px; align-items: center; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.03); transition: opacity 0.15s ease; }
+.set-row:last-child { border-bottom: none; }
+.set-row--done { opacity: 0.55; }
+.set-row--last { margin-top: 2px; padding-top: 9px; border-top: 1px dashed var(--accent-line); }
+.set-row--last .set-num { background: var(--accent-soft); color: var(--accent); font-weight: 800; }
+
+.set-num { text-align: center; font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--txt-3); background: rgba(255,255,255,0.04); padding: 5px 0; border-radius: 5px; }
+
+.set-w { display: flex; align-items: stretch; background: rgba(255,255,255,0.05); border: 1px solid var(--line-2); border-radius: 8px; overflow: hidden; }
+.set-w-btn { width: 30px; flex-shrink: 0; background: rgba(255,255,255,0.04); color: var(--txt-2); font-family: var(--mono); font-weight: 700; font-size: 14px; }
+.set-w-btn:active { background: rgba(255,255,255,0.12); color: var(--accent); }
+.set-w-input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; color: var(--txt-1); font-family: var(--mono); font-weight: 700; font-size: 16px; text-align: center; padding: 6px 0; }
+.set-w-input::placeholder { color: var(--txt-4); font-weight: 500; }
+.set-w-plates { width: 30px; flex-shrink: 0; background: rgba(59,130,246,0.10); color: var(--info); font-size: 13px; }
+.set-w-plates:active { background: rgba(59,130,246,0.25); }
+
+.set-w-text { width: 100%; border: 1px solid var(--line-2); outline: none; background: rgba(255,255,255,0.05); border-radius: 8px; color: var(--txt-1); font-family: var(--mono); font-weight: 700; font-size: 16px; text-align: center; padding: 7px 4px; }
+
+.set-r-input { border: 1px solid var(--line-2); outline: none; background: rgba(255,255,255,0.05); border-radius: 8px; color: var(--txt-1); font-family: var(--mono); font-weight: 700; font-size: 16px; text-align: center; padding: 7px 4px; width: 100%; }
+.set-r-input::placeholder { color: var(--txt-4); font-weight: 500; }
+
+.set-d-btn { width: 36px; height: 36px; border-radius: 9px; background: rgba(255,255,255,0.05); color: var(--txt-3); font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.15s ease; }
+.set-d-btn--done { background: var(--good); color: white; font-size: 18px; }
+
+.set-amrap-flag { grid-column: 1 / -1; font-size: 10px; font-weight: 700; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; margin: 6px 0 -2px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.set-amrap-flag::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+.set-amrap-flag-target { margin-left: auto; color: var(--txt-3); font-family: var(--mono); font-weight: 600; letter-spacing: 0; text-transform: none; font-size: 10px; }
+.set-amrap-1rm { color: var(--good); font-family: var(--mono); font-weight: 700; font-size: 10px; letter-spacing: 0; text-transform: none; padding: 1px 6px; background: var(--good-soft); border-radius: 3px; }
+
+.notes-input { width: 100%; margin-top: 11px; background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 8px; color: var(--txt-2); padding: 9px 11px; font-size: 12px; font-family: inherit; resize: vertical; outline: none; min-height: 32px; }
+.notes-input:focus { border-color: var(--accent-line); }
+
+.timer { position: fixed; bottom: 0; left: 0; right: 0; z-index: 60; background: var(--bg-1); border-top: 1px solid var(--line); padding: 14px 16px calc(14px + var(--safe-bottom)); box-shadow: 0 -10px 30px rgba(0,0,0,0.4); display: flex; align-items: center; gap: 12px; }
+.timer--alert { background: linear-gradient(180deg, var(--warn), #d68908); }
+.timer--done { background: linear-gradient(180deg, var(--good), #16a34a); animation: pulseTimer 0.4s ease; }
+@keyframes pulseTimer { 0% { transform: scale(0.97); } 50% { transform: scale(1.005); } 100% { transform: scale(1); } }
+.timer-info { flex: 1; }
+.timer-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.timer-num { font-family: var(--mono); font-size: 32px; font-weight: 800; letter-spacing: -0.04em; line-height: 0.9; color: white; }
+.timer-label { font-size: 10px; letter-spacing: 0.1em; font-weight: 600; color: rgba(255,255,255,0.6); text-transform: uppercase; }
+.timer-bar { height: 4px; background: rgba(255,255,255,0.18); border-radius: 2px; overflow: hidden; }
+.timer-fill { height: 100%; border-radius: 2px; background: white; transition: width 0.25s linear; }
+.timer-btn { width: 44px; height: 44px; border-radius: 11px; background: rgba(255,255,255,0.15); color: white; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+.timer-btn:active { background: rgba(255,255,255,0.30); }
+
+.modal-bg { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.65); backdrop-filter: blur(6px); display: flex; align-items: flex-end; justify-content: center; animation: fadeinModal 0.18s ease; }
+@keyframes fadeinModal { from { opacity: 0; } }
+.modal { width: 100%; max-width: 520px; background: var(--bg-1); border-top: 1px solid var(--line); border-radius: 18px 18px 0 0; padding: 16px 16px calc(20px + var(--safe-bottom)); animation: slideupModal 0.25s cubic-bezier(0.2,0.8,0.2,1); }
+@keyframes slideupModal { from { transform: translateY(100%); } }
+.modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.modal-title { font-family: var(--display); font-weight: 700; font-size: 17px; letter-spacing: -0.01em; }
+.modal-close { width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.06); color: var(--txt-2); font-size: 14px; }
+.plate-target { background: var(--bg-2); border-radius: 12px; padding: 13px 16px; text-align: center; margin-bottom: 14px; }
+.plate-target-w { font-family: var(--mono); font-size: 32px; font-weight: 800; letter-spacing: -0.03em; color: var(--txt-1); }
+.plate-target-w small { font-size: 13px; color: var(--txt-3); margin-left: 3px; }
+.plate-target-bar { margin-top: 4px; font-size: 11px; font-family: var(--mono); color: var(--txt-3); }
+.plate-side-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--txt-4); font-weight: 700; margin-bottom: 8px; }
+.plate-stack { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; min-height: 44px; padding: 12px; background: var(--bg-2); border-radius: 10px; }
+.plate-stack--empty { display: flex; align-items: center; justify-content: center; color: var(--txt-4); font-size: 12px; font-style: italic; }
+.plate { font-family: var(--mono); font-size: 13px; font-weight: 700; padding: 7px 12px; border-radius: 7px; color: white; }
+.plate--25 { background: #dc2626; }
+.plate--20 { background: #1d4ed8; }
+.plate--15 { background: #ca8a04; }
+.plate--10 { background: #15803d; }
+.plate--5  { background: #f4f4f7; color: #0a0a0f; }
+.plate--2-5 { background: #6b7280; font-size: 11px; padding: 5px 9px; }
+.plate--1-25 { background: #4b5563; font-size: 11px; padding: 5px 9px; }
+.plate-impossible { background: var(--accent-soft); border: 1px solid var(--accent-line); border-radius: 10px; padding: 12px; color: var(--accent); font-size: 12px; text-align: center; }
+
+.foot { text-align: center; padding: 16px; }
+.foot-btn { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 10px; color: var(--txt-3); padding: 9px 22px; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.foot-btn:active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent-line); }
+.foot-meta { margin-top: 14px; font-size: 10px; color: var(--txt-4); font-family: var(--mono); letter-spacing: 0.04em; }
+
+.loading { min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: var(--display); color: var(--accent); font-size: 16px; font-weight: 700; letter-spacing: 0.04em; }
+`;
+
+// ============ COMPONENTS ============
+function RestTimer({ duration, onClose }) {
+  const [remaining, setRemaining] = useState(duration);
+  const [paused, setPaused] = useState(false);
+  const startRef = useRef(Date.now());
+  const intervalRef = useRef(null);
+
+  useEffect(() => {
+    if (paused) return;
+    intervalRef.current = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startRef.current) / 1000);
+      const left = duration - elapsed;
+      if (left <= 0) {
+        clearInterval(intervalRef.current);
+        setRemaining(0);
+        try {
+          if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate([200, 80, 200]);
+        } catch (e) {}
+      } else {
+        setRemaining(left);
+      }
+    }, 250);
+    return () => clearInterval(intervalRef.current);
+  }, [duration, paused]);
+
+  const pct = ((duration - remaining) / duration) * 100;
+  const alert = remaining > 0 && remaining <= 5;
+  const done = remaining === 0;
+  const cls = "timer " + (done ? "timer--done" : alert ? "timer--alert" : "");
+
+  function togglePause() {
+    if (paused) {
+      startRef.current = Date.now() - (duration - remaining) * 1000;
+      setPaused(false);
+    } else {
+      setPaused(true);
+      clearInterval(intervalRef.current);
+    }
+  }
+
+  return (
+    <div className={cls}>
+      <div className="timer-info">
+        <div className="timer-row">
+          <span className="timer-num">{done ? "GO" : fmtTime(remaining)}</span>
+          <span className="timer-label">REST {fmtTime(duration)}</span>
+        </div>
+        <div className="timer-bar">
+          <div className="timer-fill" style={{ width: pct + "%" }} />
+        </div>
+      </div>
+      {!done && (
+        <button className="timer-btn" onClick={togglePause}>
+          {paused ? "▶" : "⏸"}
+        </button>
+      )}
+      <button className="timer-btn" onClick={onClose}>✕</button>
+    </div>
+  );
+}
+
+function PlateModal({ weight, onClose }) {
+  const plates = calcPlatesPerSide(weight);
+  return (
+    <div className="modal-bg" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-head">
+          <div className="modal-title">Plate Calculator</div>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="plate-target">
+          <div className="plate-target-w">
+            {weight}<small>kg total</small>
+          </div>
+          <div className="plate-target-bar">{BAR_KG} kg bar + plates per side ↓</div>
+        </div>
+        <div className="plate-side-label">Each side</div>
+        {plates === null ? (
+          <div className="plate-impossible">
+            Can't make {weight} kg exactly with standard plates ({KG_PLATES.join(", ")} kg).
+            {weight < BAR_KG && (
+              <>
+                <br />
+                <br />
+                Use dumbbells or bar only ({BAR_KG} kg).
+              </>
+            )}
+          </div>
+        ) : plates.length === 0 ? (
+          <div className="plate-stack plate-stack--empty">Bar only — no plates needed</div>
+        ) : (
+          <div className="plate-stack">
+            {plates.map((p, i) => (
+              <span key={i} className={plateClass(p)}>{p}</span>
+            ))}
+          </div>
+        )}
+        {plates && plates.length > 0 && (
+          <div className="plate-target-bar" style={{ textAlign: "center" }}>
+            Total: {BAR_KG} + 2×({plates.reduce((a, b) => a + b, 0)}) = {weight} kg
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SetRow({ idx, total, set, onUpdate, onStartTimer, restSec, isAmrap, target, onPlate, isHeavy }) {
+  function bumpW(delta) {
+    const cur = parseFloat(set.w) || 0;
+    const next = Math.max(0, Math.round((cur + delta) * 4) / 4);
+    onUpdate({ ...set, w: String(next) });
+  }
+  function onWChange(e) { onUpdate({ ...set, w: e.target.value }); }
+  function onRChange(e) { onUpdate({ ...set, r: e.target.value }); }
+  function onDoneToggle() {
+    const newDone = !set.d;
+    onUpdate({ ...set, d: newDone });
+    if (newDone && restSec) onStartTimer(restSec);
+  }
+  const isLast = idx === total - 1;
+  const isText = set.w === "bw" || set.w === "MAX";
+
+  // 1RM estimate on AMRAP set
+  const oneRM = isAmrap && isLast && set.r ? epley(set.w, set.r) : null;
+
+  return (
+    <>
+      {isLast && isAmrap && (
+        <div className="set-amrap-flag">
+          <span>AMRAP set</span>
+          <span className="set-amrap-flag-target">target {target}+ reps</span>
+          {oneRM && <span className="set-amrap-1rm">~{oneRM}kg 1RM</span>}
+        </div>
+      )}
+      <div className={"set-row" + (set.d ? " set-row--done" : "") + (isLast && isAmrap ? " set-row--last" : "")}>
+        <div className="set-num">S{idx + 1}</div>
+        {isText ? (
+          <input className="set-w-text" value={set.w} onChange={onWChange} placeholder="kg" />
+        ) : (
+          <div className="set-w">
+            <button className="set-w-btn" onClick={() => bumpW(-2.5)}>−</button>
+            <input className="set-w-input" type="number" inputMode="decimal" step="2.5" value={set.w} onChange={onWChange} placeholder="kg" />
+            <button className="set-w-btn" onClick={() => bumpW(2.5)}>+</button>
+            <button className="set-w-plates" onClick={() => onPlate(parseFloat(set.w) || 0)}>⊟</button>
+          </div>
+        )}
+        <input className="set-r-input" type="number" inputMode="numeric" pattern="[0-9]*" value={set.r} onChange={onRChange} placeholder="reps" />
+        <button className={"set-d-btn" + (set.d ? " set-d-btn--done" : "")} onClick={onDoneToggle}>
+          {set.d ? "✓" : "○"}
+        </button>
+      </div>
+    </>
+  );
+}
+
+function ExerciseCard({ ex, idx, log, onUpdateLog, onStartTimer, onPlate, lastSession }) {
+  const [open, setOpen] = useState(false);
+  const sets = log.sets || defSets(ex);
+  const note = log.note || "";
+  const completed = sets.filter((s) => s.d).length;
+  const total = ex.sets;
+  const allDone = completed === total;
+
+  useEffect(() => {
+    if (!log.sets) onUpdateLog({ sets: defSets(ex), note: "" });
+  }, []);
+
+  function updateSet(i, ns) {
+    const arr = sets.slice();
+    arr[i] = ns;
+    onUpdateLog({ sets: arr, note });
+  }
+  function updateNote(e) { onUpdateLog({ sets, note: e.target.value }); }
+
+  const isAmrap = ex.target_reps != null;
+  const isHeavy = ex.progression === "heavy";
+
+  let cardCls = "ex";
+  if (allDone) cardCls += " ex--done";
+  if (open) cardCls += " ex--open";
+
+  const wLabel = ex.weight_kg !== "bw" && ex.weight_kg !== "MAX" ? "kg" : "";
+
+  // Last session summary
+  let lastSummary = null;
+  if (lastSession && lastSession.completedSets.length > 0) {
+    const cs = lastSession.completedSets;
+    const reps = cs.map(s => s.r).join(", ");
+    const w = cs[0].w;
+    lastSummary = `Last (W${lastSession.week}D${lastSession.day}): ${w}kg × ${reps}`;
+  }
+  
+  // Estimated 1RM from last AMRAP if available
+  let last1RM = null;
+  if (isAmrap && lastSession && lastSession.completedSets.length > 0) {
+    const last = lastSession.completedSets[lastSession.completedSets.length - 1];
+    last1RM = epley(last.w, last.r);
+  }
+
+  return (
+    <div className={cardCls}>
+      <button className="ex-head" onClick={() => setOpen(!open)}>
+        <div className="ex-num">{allDone ? "✓" : idx + 1}</div>
+        <div className="ex-info">
+          <div className="ex-name">
+            {ex.name}
+            {isHeavy && <span className="ex-meta-tag ex-meta-tag--heavy">Heavy</span>}
+            {isAmrap && <span className="ex-meta-tag ex-meta-tag--amrap">AMRAP</span>}
+          </div>
+          <div className="ex-meta">
+            {ex.sets}×{ex.reps} · {ex.weight_kg}{wLabel} · rest {ex.rest}s
+          </div>
+          {lastSummary && (
+            <div className="ex-last">↻ {lastSummary}</div>
+          )}
+        </div>
+        <div className="ex-prog">{completed}/{total}</div>
+        <div className="ex-chev">▼</div>
+      </button>
+      {open && (
+        <div className="ex-body">
+          <div className="coach-note">
+            <b>Coach:</b> {ex.note}
+            <small>{ex.rpe} · {ex.rest}s rest between sets</small>
+          </div>
+          {lastSession && (
+            <div className="last-session">
+              <div className="last-session-label">Last Session — W{lastSession.week} Day {lastSession.day}</div>
+              <div className="last-session-data">
+                {lastSession.completedSets.map((s, i) => (
+                  <span key={i}>{i > 0 ? ", " : ""}{s.w}×{s.r}</span>
+                ))}
+                {last1RM && <span className="last-session-1rm">~{last1RM}kg 1RM</span>}
+              </div>
+            </div>
+          )}
+          <div className="set-hd">
+            <div className="set-hd-num">Set</div>
+            <div>Weight</div>
+            <div className="set-hd-r">Reps</div>
+            <div className="set-hd-d">Done</div>
+          </div>
+          {sets.map((s, i) => (
+            <SetRow
+              key={i}
+              idx={i}
+              total={total}
+              set={s}
+              restSec={ex.rest}
+              isAmrap={isAmrap}
+              target={ex.target_reps}
+              onUpdate={(ns) => updateSet(i, ns)}
+              onStartTimer={onStartTimer}
+              onPlate={onPlate}
+              isHeavy={isHeavy}
+            />
+          ))}
+          <textarea className="notes-input" rows="2" value={note} onChange={updateNote} placeholder="Notes — how did this feel?" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function App() {
+  const [week, setWeek] = useState(1);
+  const [day, setDay] = useState(1);
+  const [logs, setLogs] = useState({});
+  const [timerDur, setTimerDur] = useState(null);
+  const [plate, setPlate] = useState(null);
+  const [loaded, setLoaded] = useState(false);
+  const [saveMsg, setSaveMsg] = useState("");
+
+  useEffect(() => {
+    async function init() {
+      try {
+        const result = await window_storage.get(STORAGE_KEY);
+        if (result && result.value) setLogs(JSON.parse(result.value));
+      } catch (e) {}
+      setLoaded(true);
+    }
+    init();
+  }, []);
+
+  function save(newLogs) {
+    setLogs(newLogs);
+    setSaveMsg("saving");
+    window_storage.set(STORAGE_KEY, JSON.stringify(newLogs))
+      .then((res) => {
+        setSaveMsg(res ? "saved" : "fail");
+        setTimeout(() => setSaveMsg(""), 1400);
+      })
+      .catch(() => {
+        setSaveMsg("fail");
+        setTimeout(() => setSaveMsg(""), 2000);
+      });
+  }
+
+  if (!loaded) {
+    return (
+      <div className="wt-root">
+        <style>{STYLES}</style>
+        <div className="loading">Loading…</div>
+      </div>
+    );
+  }
+
+  const wk = PROGRAM.weeks[String(week)];
+  const dd = wk.days[String(day)];
+  const dayKey = "w" + week + "d" + day;
+  const dayLog = logs[dayKey] || {};
+
+  const totalSets = dd.exercises.reduce((a, x) => a + x.sets, 0);
+  const doneSets = dd.exercises.reduce((a, x, i) => {
+    const eLog = dayLog[i] || {};
+    return a + ((eLog.sets || []).filter((s) => s.d).length);
+  }, 0);
+  const dayPct = totalSets > 0 ? Math.round((doneSets / totalSets) * 100) : 0;
+
+  let saveBadge = null;
+  if (saveMsg === "saving") saveBadge = <span className="hd-save hd-save--saving">Saving…</span>;
+  else if (saveMsg === "saved") saveBadge = <span className="hd-save hd-save--saved">✓ Saved</span>;
+  else if (saveMsg === "fail") saveBadge = <span className="hd-save hd-save--fail">Storage error</span>;
+
+  return (
+    <div className="wt-root">
+      <style>{STYLES}</style>
+      <div className={"app" + (timerDur != null ? " app--with-timer" : "")}>
+        <div className="hd">
+          <div className="hd-top">
+            <div>
+              <h1 className="hd-title">
+                <span className="hd-title-block">HYBRID — DUP</span>
+              </h1>
+              <div className="hd-sub">
+                W{week} · {wk.title}
+                {saveBadge}
+              </div>
+            </div>
+            <div>
+              <div className={"hd-pct" + (dayPct === 100 ? " hd-pct--done" : "")}>
+                {dayPct}<span style={{ fontSize: 16, opacity: 0.4 }}>%</span>
+              </div>
+              <div className="hd-pct-label">{doneSets}/{totalSets} sets</div>
+            </div>
+          </div>
+          <div className="weeks">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((w) => {
+              const dataW = PROGRAM.weeks[String(w)];
+              let wT = 0, wD = 0;
+              for (const dn of [1, 2, 3, 4, 5]) {
+                const dl = logs["w" + w + "d" + dn] || {};
+                const dd2 = dataW.days[String(dn)];
+                for (let xi = 0; xi < dd2.exercises.length; xi++) {
+                  wT += dd2.exercises[xi].sets;
+                  wD += ((dl[xi] && dl[xi].sets) || []).filter((s) => s.d).length;
+                }
+              }
+              const wPct = wT > 0 ? Math.round((wD / wT) * 100) : 0;
+              const isComplete = wPct === 100;
+              const cls =
+                "wk" +
+                (week === w ? " wk--active" : "") +
+                (isComplete ? " wk--complete" : "");
+              return (
+                <button key={w} className={cls} onClick={() => { setWeek(w); setDay(1); }}>
+                  <div className="wk-num">W{w}</div>
+                  <div className="wk-pct">{dataW.title}</div>
+                </button>
+              );
+            })}
+          </div>
+          <div className="days">
+            {[1, 2, 3, 4, 5].map((d) => {
+              const dl = logs["w" + week + "d" + d] || {};
+              const dd2 = wk.days[String(d)];
+              let dT = 0, dD = 0;
+              for (let xi = 0; xi < dd2.exercises.length; xi++) {
+                dT += dd2.exercises[xi].sets;
+                dD += ((dl[xi] && dl[xi].sets) || []).filter((s) => s.d).length;
+              }
+              const dPct = dT > 0 ? Math.round((dD / dT) * 100) : 0;
+              const isComplete = dPct === 100;
+              const dayColor = DAY_COLORS[d];
+              return (
+                <button
+                  key={d}
+                  className={"dy" + (day === d ? " dy--active" : "") + (isComplete ? " dy--complete" : "")}
+                  onClick={() => setDay(d)}
+                  style={day === d ? { borderBottomColor: dayColor, color: dayColor } : {}}
+                >
+                  <div className="dy-label">{DAY_LABELS[d]}</div>
+                  <div className="dy-pct">{isComplete ? "✓" : dPct > 0 ? dPct + "%" : "—"}</div>
+                </button>
+              );
+            })}
+          </div>
+          <div className="day-name">
+            <div>{dd.name}</div>
+          </div>
+          <div className="prog-bar">
+            <div
+              className={"prog-fill" + (dayPct === 100 ? " prog-fill--done" : "")}
+              style={{ width: dayPct + "%", background: dayPct === 100 ? "var(--good)" : `linear-gradient(90deg, ${DAY_COLORS[day]}, ${DAY_COLORS[day]}cc)` }}
+            />
+          </div>
+        </div>
+        <div className="ex-list">
+          {dd.exercises.map((ex, i) => {
+            const lastSession = findLastSession(logs, dayKey, ex.name);
+            return (
+              <ExerciseCard
+                key={dayKey + "-" + i}
+                ex={ex}
+                idx={i}
+                log={dayLog[i] || {}}
+                lastSession={lastSession}
+                onUpdateLog={(data) => {
+                  const newDay = { ...dayLog, [i]: data };
+                  save({ ...logs, [dayKey]: newDay });
+                }}
+                onStartTimer={(r) => setTimerDur(r)}
+                onPlate={(w) => w > 0 && setPlate(w)}
+              />
+            );
+          })}
+        </div>
+        <div className="foot">
+          <button
+            className="foot-btn"
+            onClick={() => {
+              if (confirm("Clear today's log? Pre-filled weights restored.")) {
+                const nl = { ...logs };
+                delete nl[dayKey];
+                save(nl);
+              }
+            }}
+          >
+            Reset Day
+          </button>
+          <div className="foot-meta">8-week DUP · 5 days · kg · auto-saves</div>
+        </div>
+        {timerDur != null && <RestTimer duration={timerDur} onClose={() => setTimerDur(null)} />}
+        {plate != null && <PlateModal weight={plate} onClose={() => setPlate(null)} />}
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(React.createElement(App));
+</script>
+</body>
+</html>
